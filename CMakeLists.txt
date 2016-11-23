@@ -9,8 +9,13 @@ project(game)
 set(SOURCE_ROOT src)
 # Scan source folder to find all sources and put the result to SRC_LIST.
 aux_source_directory(${SOURCE_ROOT} SRC_LIST)
+
+#include_directories(src/GameObjects)
+add_subdirectory(src/GameObjects)
+
 # Create executable by SRC_LIST.
 add_executable(${PROJECT_NAME} ${SRC_LIST})
+target_link_libraries(${PROJECT_TEST_NAME} libGameObjects)
 
 # Add subdirectory with Google Test Library.
 add_subdirectory(3party/googletest)
@@ -28,6 +33,6 @@ set(TEST_SRC_FILES ${SRC_LIST} ${TEST_SRC_FILES})
 list(REMOVE_ITEM TEST_SRC_FILES src/main.cpp)
 add_executable(${PROJECT_TEST_NAME} ${TEST_SRC_FILES})
 # Link gtest and gtest_main libraries.
-target_link_libraries(${PROJECT_TEST_NAME} gtest gtest_main)
+target_link_libraries(${PROJECT_TEST_NAME} gtest gtest_main libGameObjects)
 # Finish tests setting up.
 add_test(test ${PROJECT_TEST_NAME})
