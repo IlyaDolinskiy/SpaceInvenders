@@ -1,8 +1,8 @@
 #pragma once
 
-#include "SpaceObjects.hpp"
+#include "ISpaceObjects.hpp"
 
-class Obstacles
+class Obstacles : public ISpaceObjects
 {
 public:
   virtual ~Obstacles() {};

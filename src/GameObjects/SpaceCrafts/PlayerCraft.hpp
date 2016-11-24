@@ -1,11 +1,11 @@
 #pragma once
 
-#include "SpaceCrafts.hpp"
+#include "ISpaceCrafts.hpp"
 
-class PlayerCraft : public SpaceCrafts
+class PlayerCraft : public ISpaceCrafts
 {
 public:
-  ~PlayerCraft() {};
+  virtual ~PlayerCraft() {};
 
   void do_smth();
 public:

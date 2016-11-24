@@ -1,9 +1,9 @@
 #pragma once
 
-#include "SpaceCrafts.hpp"
+#include "ISpaceCrafts.hpp"
 
-class AlienCraft : public SpaceCrafts
+class AlienCraft : public ISpaceCrafts
 {
 public:
-  virtual ~AlienCraft() {];
+  virtual ~AlienCraft() {};
 };

@@ -1,8 +1,8 @@
 #include "gtest/gtest.h"
 
-#include "GameObjects/SpaceCrafts/PlayerCraft.hpp"
+#include "GameObjects/GameObjects.hpp"
 
-TEST(start, main_test)
+TEST(startA, main_testA)
 {
   PlayerCraft player;
   player.do_smth();

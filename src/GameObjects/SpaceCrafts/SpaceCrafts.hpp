@@ -1,9 +1,4 @@
 #pragma once
 
-#include "../SpaceObjects.hpp"
-
-class SpaceCrafts : SpaceObjects
-{
-public:
-  virtual ~SpaceCrafts() {};
-};
+#include "AlienCraft.hpp"
+#include "PlayerCraft.hpp"
