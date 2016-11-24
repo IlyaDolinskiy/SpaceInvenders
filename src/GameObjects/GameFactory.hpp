@@ -8,7 +8,7 @@ class IGameObjects;
 class GameObjectsFactory : protected patterns::Singleton <GameObjectsFactory>, public patterns::factory::Factory<IGameObjects, GameObjectsTypes>
 {
 public:
-  
+
 protected:
   friend class patterns::Singleton<GameObjectsFactory>;
 };

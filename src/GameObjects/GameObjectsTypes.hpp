@@ -1,6 +1,6 @@
 #pragma once
 
-enum GameObjectsTypes : unsigned char 
+enum class GameObjectsTypes : unsigned char 
 {
   Bullet,
   Obstacles,

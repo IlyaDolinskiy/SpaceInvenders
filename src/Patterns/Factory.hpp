@@ -1,6 +1,6 @@
 #pragma once
 
-#include <exception>
+#include <memory>
 
 #include "noncopyable.hpp"
 #include "FactoryPolicy.hpp"
@@ -30,7 +30,7 @@ public:
 };
 
 
-template <class Base, class IdType = int, template <class, class> class FactoryErrorPolicy = FactoryIgnoreErrorPolicy>
+template <class Base, class IdType , template <class, class> class FactoryErrorPolicy = FactoryIgnoreErrorPolicy>
 class Factory : public FactoryErrorPolicy<Base, IdType>, private noncopyable
 {
 protected:
@@ -47,10 +47,12 @@ public:
 
   Base * Create(IdType const & id) const
   {
-    typename FactoryMap::const_iterator it = m_map.find(id);
+    auto it = m_map.find(id);
     if (it != m_map.end())
+    {
       return it->second->create();
-    return OnCreateFailed(id);
+    }
+    //return OnCreateFailed(id);
   }
 
   template <typename C>
@@ -61,14 +63,14 @@ public:
 
   void Remove(IdType const & id)
   {
-    typename FactoryMap::iterator it = m_map.find(id);
+    auto it = m_map.find(id);
     if (it != m_map.end())
     {
       delete it->second;
       m_map.erase(it);
     }
-    else
-      OnRemoveFailed(id);
+    //else
+    //  OnRemoveFailed(id);
   }
 
   bool IsRegistered(IdType const & id) const
@@ -84,12 +86,14 @@ public:
 protected:
   void RegisterClass(IdType const & id, FactoryCreator * pFactory)
   {
-    std::auto_ptr<FactoryCreator> ptr(pFactory);
-    typename FactoryMap::iterator it = m_map.find(id);
+    std::unique_ptr<FactoryCreator> ptr(pFactory);
+    auto it = m_map.find(id);
     if (it == m_map.end())
+    {
       m_map[id] = ptr.release();
-    else
-      OnDuplicateRegistered(id);
+    }
+    //else
+    //  OnDuplicateRegistered(id);
   }
 
 private:
