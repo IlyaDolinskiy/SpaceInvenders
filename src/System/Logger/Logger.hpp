@@ -62,7 +62,7 @@ protected:
     m_outputStream.close();
   }
 
-  friend class Singleton<Logger>;
+  friend class patterns::Singleton<Logger>;
 };
 
 #define Log patterns::Singleton<Logger>::Instance()
