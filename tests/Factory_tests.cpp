@@ -23,6 +23,11 @@ TEST(Factory, registration)
   EXPECT_EQ(GameFactory.IsRegistered(GameObjectsTypes::Bullet), true);
   EXPECT_EQ(GameFactory.IsRegistered(GameObjectsTypes::Obstacles), true);
   EXPECT_EQ(GameFactory.IsRegistered(GameObjectsTypes::AlienCraft), true);
+
+
+  GameFactory.Remove(GameObjectsTypes::Bullet);
+  GameFactory.Remove(GameObjectsTypes::Obstacles);
+  GameFactory.Remove(GameObjectsTypes::AlienCraft);
 }
 
 TEST(Factory, unregistration)
@@ -88,3 +93,14 @@ TEST(Factory, create)
   delete obstacles;
   delete alienCraft;
 }
+
+#if DEF_GAME_FACTORY_POLICY == DEF_GAME_FACTORY_POLICY_THROW_EXCEPTION
+using FactoryException = patterns::factory::policy::FactoryException;
+TEST(FactoryPolicy, test)
+{
+  GameFactory.Add<Obstacles>(GameObjectsTypes::Obstacles);
+  ASSERT_THROW(GameFactory.Add<Obstacles>(GameObjectsTypes::Obstacles), FactoryException);
+  ASSERT_THROW(GameFactory.Remove(GameObjectsTypes::AlienCraft), FactoryException);
+  ASSERT_THROW(GameFactory.Create(GameObjectsTypes::AlienCraft), FactoryException);
+}
+#endif // DEF_GAME_FACTORY_POLICY

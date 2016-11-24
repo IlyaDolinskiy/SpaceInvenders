@@ -30,7 +30,7 @@ public:
 };
 
 
-template <class Base, class IdType , template <class, class> class FactoryErrorPolicy = FactoryIgnoreErrorPolicy>
+template <class Base, class IdType , template <class, class> class FactoryErrorPolicy = policy::FactoryIgnoreErrorPolicy>
 class Factory : public FactoryErrorPolicy<Base, IdType>, private noncopyable
 {
 protected:
@@ -52,7 +52,7 @@ public:
     {
       return it->second->create();
     }
-    //return OnCreateFailed(id);
+    return FactoryErrorPolicy<Base, IdType>::OnCreateFailed(id);
   }
 
   template <typename C>
@@ -69,8 +69,8 @@ public:
       delete it->second;
       m_map.erase(it);
     }
-    //else
-    //  OnRemoveFailed(id);
+    else
+      FactoryErrorPolicy<Base, IdType>::OnRemoveFailed(id);
   }
 
   bool IsRegistered(IdType const & id) const
@@ -92,8 +92,8 @@ protected:
     {
       m_map[id] = ptr.release();
     }
-    //else
-    //  OnDuplicateRegistered(id);
+    else
+      FactoryErrorPolicy<Base, IdType>::OnDuplicateRegistered(id);
   }
 
 private:

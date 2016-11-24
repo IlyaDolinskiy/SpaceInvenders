@@ -39,7 +39,8 @@ public:
   std::string generateMessage(char const * msg, Type const & type) const
   {
     std::stringstream strm;
-    strm << msg << ", requested type id : " << type;
+    std::string str = std::string(msg) +  std::string(", requested type id : ") + std::to_string(static_cast<int>(type));
+    //strm << msg << ", requested type id : " << type;
     return strm.str();
   }
 
