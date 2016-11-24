@@ -6,4 +6,5 @@ class ISpaceCrafts : public ISpaceObjects
 {
 public:
   virtual ~ISpaceCrafts() {};
+  virtual GameObjectsTypes GetType() const override = 0;
 };

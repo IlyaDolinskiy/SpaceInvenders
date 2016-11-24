@@ -3,10 +3,11 @@
 #include "ISpaceCrafts.hpp"
 #include "../../Patterns/Singleton.hpp"
 
-class PlayerCraft : public ISpaceCrafts, protected Singleton <PlayerCraft>
+class PlayerCraft : public ISpaceCrafts, protected patterns::Singleton <PlayerCraft>
 {
 public:
-  virtual ~PlayerCraft() {};
+  ~PlayerCraft() override {};
+  GameObjectsTypes GetType() const override { return GameObjectsTypes::Player; }
 
   void do_smth();
 protected:
@@ -16,4 +17,4 @@ public:
   int m_i;
 };
 
-#define Player Singleton<PlayerCraft>::Instance()
+#define Player patterns::Singleton<PlayerCraft>::Instance()

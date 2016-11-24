@@ -5,5 +5,6 @@
 class Bullet : public ISpaceObjects
 {
 public:
-  virtual ~Bullet() {};
+  ~Bullet() override {};
+  GameObjectsTypes GetType() const override { return GameObjectsTypes::Bullet; }
 };

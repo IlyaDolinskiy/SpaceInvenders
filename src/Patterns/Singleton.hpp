@@ -2,6 +2,8 @@
 
 #include "noncopyable.hpp"
 
+namespace patterns
+{
 template <class T>
 class Singleton: private noncopyable
 {
@@ -12,3 +14,4 @@ public:
     return instance;
   }
 };
+}

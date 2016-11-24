@@ -5,5 +5,6 @@
 class AlienCraft : public ISpaceCrafts
 {
 public:
-  virtual ~AlienCraft() {};
+  ~AlienCraft() override {};
+  GameObjectsTypes GetType() const override { return GameObjectsTypes::AlienCraft; }
 };

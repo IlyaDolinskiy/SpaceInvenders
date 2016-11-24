@@ -7,7 +7,7 @@
 #include "../../Patterns/Singleton.hpp"
 
 
-class Logger : public Singleton <Logger>
+class Logger : public patterns::Singleton <Logger>
 {
 public:
   static const std::string Debug;
@@ -65,4 +65,4 @@ protected:
   friend class Singleton<Logger>;
 };
 
-#define Log Singleton<Logger>::Instance()
+#define Log patterns::Singleton<Logger>::Instance()

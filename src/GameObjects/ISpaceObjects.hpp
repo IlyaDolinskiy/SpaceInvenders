@@ -5,5 +5,6 @@
 class ISpaceObjects : public IGameObjects
 {
 public:
-  virtual ~ISpaceObjects() {};
+  ~ISpaceObjects() override {};
+  GameObjectsTypes GetType() const override = 0;
 };
