@@ -1,9 +1,9 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8) 
 
-project(GameObjects)
+project(GameObjects) 
 
-set(PATH SpaceCrafts)
+set(PATH SpaceCrafts) 
 
-aux_source_directory(${PATH} SOURCES)
+aux_source_directory(${PATH} SOURCES) 
 
 add_library(libGameObjects ${SOURCES})

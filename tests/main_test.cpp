@@ -4,7 +4,6 @@
 
 TEST(startA, main_testA)
 {
-  PlayerCraft player;
-  player.do_smth();
-  EXPECT_EQ(player.m_i, 2);
+  Player.do_smth();
+  EXPECT_EQ(Player.m_i, 2);
 }
