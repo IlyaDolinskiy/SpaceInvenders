@@ -21,7 +21,7 @@ add_executable(${PROJECT_NAME} ${SRC_LIST})
 add_subdirectory(src/GameObjects)
 target_link_libraries(${PROJECT_NAME}  libGameObjects)
 
-add_subdirectory(src/System)
+add_subdirectory(src/Tools)
 target_link_libraries(${PROJECT_NAME}  libSystem)
 
 
