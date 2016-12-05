@@ -20,19 +20,35 @@ public:
   void AddAlien(AlienPtr alien) { m_aliens.push_back(alien); }
   void AddObstacles(ObstaclesPtr obstacles) { m_obstacles.push_back(obstacles); }
 
-  void Intersection()
+  void Intersections()
   {
     for (auto bullet: m_bullets)
     {
-      for (auto alien: m_aliens)
+      if (bullet->GetParent() == BulletParent::User)
+        for (auto alien: m_aliens)
+        {
+          if (bullet->Intersection(*(alien.get())))
+          {
+            // *10 temp
+            alien->Damage(bullet->GetEnergy()*10.0f);
+          }
+        }
+      else
       {
-
+        // player check
+        if (bullet->Intersection(Player))
+        {
+          Player.Damage(bullet->GetEnergy());
+        }
       }
       for (auto obstacles: m_obstacles)
       {
-
+        if (bullet->Intersection(*(obstacles.get())));
+        {
+          // *10 temp
+          obstacles->Damage(bullet->GetEnergy()*10.0f);
+        }
       }
-      // player check
     }
   }
 
