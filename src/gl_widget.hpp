@@ -9,6 +9,8 @@
 #include <vector>
 #include <memory>
 
+#include "GameObjects/SpaceCrafts/SpaceCrafts.hpp"
+#include "GameObjects/GameObjectsManager.hpp"
 
 class MainWindow;
 
@@ -51,6 +53,7 @@ private:
 
   QOpenGLTexture * m_textureAlien = nullptr;
   QOpenGLTexture * m_textureStar = nullptr;
+  QOpenGLTexture * m_textureGun = nullptr;
 
   TexturedRect * m_texturedRect = nullptr;
 

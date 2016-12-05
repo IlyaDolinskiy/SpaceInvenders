@@ -70,6 +70,7 @@ void GLWidget::initializeGL()
 
   m_textureAlien = new QOpenGLTexture(QImage("data/alien.png"));
   m_textureStar = new QOpenGLTexture(QImage("data/star.png"));
+  m_textureGun = new QOpenGLTexture(QImage("data/star.png"));
 
   m_time.start();
 }
@@ -127,20 +128,23 @@ void GLWidget::Update(float elapsedSeconds)
 {
   float const kSpeed = 20.0f; // pixels per second.
 
-  if (m_directions[kUpDirection])
-    m_position.setY(m_position.y() + kSpeed * elapsedSeconds);
-  if (m_directions[kDownDirection])
-    m_position.setY(m_position.y() - kSpeed * elapsedSeconds);
-  if (m_directions[kLeftDirection])
-    m_position.setX(m_position.x() - kSpeed * elapsedSeconds);
-  if (m_directions[kRightDirection])
-    m_position.setX(m_position.x() + kSpeed * elapsedSeconds);
+  auto position = Player.GetPosition();
 
+  if (m_directions[kUpDirection])
+    position.setY(position.y() + kSpeed * elapsedSeconds);
+  if (m_directions[kDownDirection])
+    position.setY(position.y() - kSpeed * elapsedSeconds);
+  if (m_directions[kLeftDirection])
+    position.setX(position.x() - kSpeed * elapsedSeconds);
+  if (m_directions[kRightDirection])
+    position.setX(position.x() + kSpeed * elapsedSeconds);
+
+  Player.SetPosition(position);
 }
 
 void GLWidget::Render()
 {
-  m_texturedRect->Render(m_textureAlien, m_position, QSize(128, 128), m_screenSize);
+  m_texturedRect->Render(m_textureAlien, Player.GetPosition(), QSize(128, 128), m_screenSize);
   m_texturedRect->Render(m_textureAlien, QVector2D(600, 600), QSize(128, 128), m_screenSize);
 
 }

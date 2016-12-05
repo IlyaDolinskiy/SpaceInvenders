@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../Patterns/Factory.hpp"
+#include "../Patterns/Singleton.hpp"
 #include "GameObjectsTypes.hpp"
 #include "../Config.hpp"
 
