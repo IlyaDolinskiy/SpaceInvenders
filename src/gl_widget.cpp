@@ -12,6 +12,8 @@
 #include <iostream>
 
 
+#include "GameObjects/GameObjectsManager.hpp"
+
 #include "main_window.hpp"
 
 namespace
@@ -49,6 +51,9 @@ GLWidget::GLWidget(MainWindow * mw, QColor const & background)
   setMinimumSize(800, 600);
   setFocusPolicy(Qt::StrongFocus);
 
+  GameFactory.Add<Obstacles>(GameObjectsTypes::Obstacles);
+  GameFactory.Add<Bullet>(GameObjectsTypes::Bullet);
+  GameFactory.Add<AlienCraft>(GameObjectsTypes::AlienCraft);
 
 }
 

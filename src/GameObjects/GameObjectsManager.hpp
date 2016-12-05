@@ -3,9 +3,10 @@
 #include <list>
 #include <memory>
 
-#include "SpaceCrafts/SpaceCrafts.hpp"
-#include "Bullet.hpp"
-#include "Obstacles.hpp"
+
+
+#include "GameObjects/GameObjects.hpp"
+
 #include "../Patterns/Singleton.hpp"
 
 typedef std::shared_ptr<Bullet> BulletPtr;

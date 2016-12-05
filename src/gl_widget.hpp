@@ -9,9 +9,6 @@
 #include <vector>
 #include <memory>
 
-#include "GameObjects/SpaceCrafts/SpaceCrafts.hpp"
-#include "GameObjects/GameObjectsManager.hpp"
-
 class MainWindow;
 
 QT_FORWARD_DECLARE_CLASS(QOpenGLTexture)
