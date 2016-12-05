@@ -3,23 +3,28 @@
 #include <list>
 #include <memory>
 
-
-
-#include "GameObjects/GameObjects.hpp"
-
+#include "SpaceCrafts/SpaceCrafts.hpp"
+#include "Bullet.hpp"
+#include "Obstacles.hpp"
 #include "../Patterns/Singleton.hpp"
 
 typedef std::shared_ptr<Bullet> BulletPtr;
 typedef std::shared_ptr<AlienCraft> AlienPtr;
 typedef std::shared_ptr<Obstacles> ObstaclesPtr;
 
+typedef std::shared_ptr<ISpaceObjects> ObjectPtr;
+
 class GameObjectsManager: protected patterns::Singleton <GameObjectsManager>
 {
 public:
 
-  void AddBullet(BulletPtr bullet) { m_bullets.push_back(bullet); }
-  void AddAlien(AlienPtr alien) { m_aliens.push_back(alien); }
-  void AddObstacles(ObstaclesPtr obstacles) { m_obstacles.push_back(obstacles); }
+  void AddBullet(BulletPtr bullet) { m_bullets.push_back(static_cast<BulletPtr>(bullet)); }
+  void AddAlien(AlienPtr alien) { m_aliens.push_back(static_cast<AlienPtr>(alien)); }
+  void AddObstacles(ObstaclesPtr obstacles) { m_obstacles.push_back(static_cast<ObstaclesPtr>(obstacles)); }
+
+  std::list<BulletPtr> const & GetBulletList() const { return m_bullets; }
+  std::list<AlienPtr> const & GetAlienList() const { return m_aliens; }
+  std::list<ObstaclesPtr> const & GetObstaclesList() const { return m_obstacles; }
 
   void Intersections()
   {

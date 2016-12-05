@@ -12,6 +12,7 @@
 #include <iostream>
 
 
+#include "GameObjects/GameObjects.hpp"
 #include "GameObjects/GameObjectsManager.hpp"
 
 #include "main_window.hpp"
@@ -149,8 +150,10 @@ void GLWidget::Update(float elapsedSeconds)
 
 void GLWidget::Render()
 {
-  m_texturedRect->Render(m_textureAlien, Player.GetPosition(), QSize(128, 128), m_screenSize);
-  m_texturedRect->Render(m_textureAlien, QVector2D(600, 600), QSize(128, 128), m_screenSize);
+  m_texturedRect->Render(m_textureGun, Player.GetPosition(), QSize(64, 64), m_screenSize);
+
+  for (auto const & i: GameManager.GetAlienList())
+    m_texturedRect->Render(m_textureAlien, i->GetPosition(), QSize(64, 64), m_screenSize);
 
 }
 
@@ -163,6 +166,7 @@ void GLWidget::mousePressEvent(QMouseEvent * e)
   if (IsLeftButton(e))
   {
     // ...
+    GameManager.AddAlien(std::shared_ptr<AlienCraft>(static_cast<AlienCraft*>(GameFactory.Create(GameObjectsTypes::AlienCraft))));
   }
 }
 
