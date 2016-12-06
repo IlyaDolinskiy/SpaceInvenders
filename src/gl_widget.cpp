@@ -86,7 +86,7 @@ void GLWidget::initializeGL()
 
   m_textureAlien = new QOpenGLTexture(QImage("data/alien.png"));
   m_textureBullet = new QOpenGLTexture(QImage("data/star.png"));
-  m_textureGun = new QOpenGLTexture(QImage("data/star.png"));
+  m_textureGun = new QOpenGLTexture(QImage("data/gun.png"));
 
   m_time.start();
 }
@@ -174,7 +174,7 @@ void GLWidget::Render()
     if (i->GetPosition().x() < 0 || i->GetPosition().x() > m_screenSize.width() ||
         i->GetPosition().y() < 0 || i->GetPosition().y() > m_screenSize.height())
       i->SetActive(false);
-    m_texturedRect->Render(m_textureBullet, i->GetPosition(), QSize(64, 64), m_screenSize);
+    m_texturedRect->Render(m_textureBullet, i->GetPosition(), QSize(16, 16), m_screenSize);
   }
 
   GameManager.Intersections();
