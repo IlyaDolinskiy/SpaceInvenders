@@ -49,7 +49,7 @@ private:
   QSize m_screenSize;
 
   QOpenGLTexture * m_textureAlien = nullptr;
-  QOpenGLTexture * m_textureStar = nullptr;
+  QOpenGLTexture * m_textureBullet = nullptr;
   QOpenGLTexture * m_textureGun = nullptr;
 
   TexturedRect * m_texturedRect = nullptr;

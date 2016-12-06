@@ -34,6 +34,8 @@ public:
   {
     healf -= harm;
   }
+
+  virtual void Move(float elapsedSeconds) {}
 protected:
   QVector2D createMax(QVector2D const & v, QSize const & s)
   {

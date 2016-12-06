@@ -28,6 +28,16 @@ public:
 
   void Intersections()
   {
+    m_bullets.erase(
+      std::remove_if(
+          m_bullets.begin(),
+          m_bullets.end(),
+          [](BulletPtr element) -> bool {
+              return !element->IsActive();
+          }
+      ),
+      m_bullets.end()
+    );
     for (auto bullet: m_bullets)
     {
       if (bullet->GetParent() == BulletParent::User)

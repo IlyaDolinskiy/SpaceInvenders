@@ -56,13 +56,23 @@ GLWidget::GLWidget(MainWindow * mw, QColor const & background)
   GameFactory.Add<Bullet>(GameObjectsTypes::Bullet);
   GameFactory.Add<AlienCraft>(GameObjectsTypes::AlienCraft);
 
+//
+  for (int i = 0; i < 5; i++)
+  {
+    auto alien = GameFactory.Create(GameObjectsTypes::AlienCraft);
+    alien->SetPosition(QVector2D(800/2 - 800/10*2.5 + 800/10*i, 400));
+    GameManager.AddAlien(std::shared_ptr<AlienCraft>(static_cast<AlienCraft*>(alien)));
+
+  }
+
 }
 
 GLWidget::~GLWidget()
 {
   makeCurrent();
   delete m_textureAlien;
-  delete m_textureStar;
+  delete m_textureBullet;
+  delete m_textureGun;
   delete m_texturedRect;
   doneCurrent();
 }
@@ -75,7 +85,7 @@ void GLWidget::initializeGL()
   m_texturedRect->Initialize(this);
 
   m_textureAlien = new QOpenGLTexture(QImage("data/alien.png"));
-  m_textureStar = new QOpenGLTexture(QImage("data/star.png"));
+  m_textureBullet = new QOpenGLTexture(QImage("data/star.png"));
   m_textureGun = new QOpenGLTexture(QImage("data/star.png"));
 
   m_time.start();
@@ -145,6 +155,11 @@ void GLWidget::Update(float elapsedSeconds)
   if (m_directions[kRightDirection])
     position.setX(position.x() + kSpeed * elapsedSeconds);
 
+  for (auto const & i: GameManager.GetBulletList())
+  {
+    i->Move(elapsedSeconds);
+  }
+
   Player.SetPosition(position);
 }
 
@@ -154,6 +169,15 @@ void GLWidget::Render()
 
   for (auto const & i: GameManager.GetAlienList())
     m_texturedRect->Render(m_textureAlien, i->GetPosition(), QSize(64, 64), m_screenSize);
+  for (auto const & i: GameManager.GetBulletList())
+  {
+    if (i->GetPosition().x() < 0 || i->GetPosition().x() > m_screenSize.width() ||
+        i->GetPosition().y() < 0 || i->GetPosition().y() > m_screenSize.height())
+      i->SetActive(false);
+    m_texturedRect->Render(m_textureBullet, i->GetPosition(), QSize(64, 64), m_screenSize);
+  }
+
+  GameManager.Intersections();
 
 }
 
@@ -166,7 +190,12 @@ void GLWidget::mousePressEvent(QMouseEvent * e)
   if (IsLeftButton(e))
   {
     // ...
-    GameManager.AddAlien(std::shared_ptr<AlienCraft>(static_cast<AlienCraft*>(GameFactory.Create(GameObjectsTypes::AlienCraft))));
+    auto bulletObj = GameFactory.Create(GameObjectsTypes::Bullet);
+    bulletObj->SetPosition(Player.GetPosition());
+    auto bullet = static_cast<Bullet*>(bulletObj);
+    bullet->SetDirection(QVector2D(px, py) - Player.GetPosition());
+    GameManager.AddBullet(std::shared_ptr<Bullet>(bullet));
+
   }
 }
 
