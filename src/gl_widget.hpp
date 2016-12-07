@@ -38,6 +38,8 @@ protected:
   void keyPressEvent(QKeyEvent * e) override;
   void keyReleaseEvent(QKeyEvent * e) override;
 
+  void EverySecond();
+
 private:
   int L2D(int px) const { return px * devicePixelRatio(); }
 
@@ -47,6 +49,8 @@ private:
   QTime m_time;
   QColor m_background;
   QSize m_screenSize;
+
+  float m_timeSecond = 0.0f;
 
   QOpenGLTexture * m_textureAlien = nullptr;
   QOpenGLTexture * m_textureBullet = nullptr;
