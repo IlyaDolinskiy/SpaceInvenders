@@ -32,23 +32,32 @@ public:
 
   virtual void Damage(double harm) 
   {
-    healf -= harm;
+    m_healf -= harm;
   }
 
+  float GetHealf() const { return m_healf; }
+  void SetHealf(float healf) { m_healf = healf; }
+
   virtual void Move(float elapsedSeconds) {}
+
+  bool IsActive() { return isActive; }
+
+  void SetActive(bool active) { isActive = active; }
+
 protected:
   QVector2D createMax(QVector2D const & v, QSize const & s)
   {
-    return QVector2D(v + QVector2D(s.width(), s.height())/2);
+    return QVector2D(v + QVector2D(s.width()/2, s.height()/2));
   }
 
   QVector2D createMin(QVector2D const & v, QSize const & s)
   {
-    return QVector2D(v - QVector2D(s.width(), s.height())/2);
+    return QVector2D(v - QVector2D(s.width()/2, s.height()/2));
   }
 
-  float healf = 100.0f;  
+  float m_healf = 100.0f;  
   QSize m_size = QSize(64, 64);
   QVector2D m_position = QVector2D(200, 200);
+  bool isActive = true;
 };
 

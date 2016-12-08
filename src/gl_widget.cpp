@@ -15,6 +15,10 @@
 #include "GameObjects/GameObjects.hpp"
 #include "GameObjects/GameObjectsManager.hpp"
 
+#include "Settings.hpp"
+
+#include <random>
+
 #include "main_window.hpp"
 
 namespace
@@ -49,7 +53,14 @@ GLWidget::GLWidget(MainWindow * mw, QColor const & background)
   : m_mainWindow(mw)
   , m_background(background)
 {
-  setMinimumSize(800, 600);
+  Settings.Load();
+
+  Player.SetHealf(300);
+
+  Player.SetPosition(QVector2D(Settings.GetWindowQSize().width()/2, 20));
+
+  setMinimumSize( Settings.GetWindowQSize() );
+  setMaximumSize( Settings.GetWindowQSize() );
   setFocusPolicy(Qt::StrongFocus);
 
   GameFactory.Add<Obstacles>(GameObjectsTypes::Obstacles);
@@ -57,14 +68,48 @@ GLWidget::GLWidget(MainWindow * mw, QColor const & background)
   GameFactory.Add<AlienCraft>(GameObjectsTypes::AlienCraft);
 
 //
-  for (int i = 0; i < 5; i++)
+  int alienCount = Settings.Get()["AlienCount"].asInt();
+  int w = Settings.GetWindowQSize().width() - 200;
+  int h = Settings.GetWindowQSize().height() - 200;
+  
+  w /= 8;
+  h /= 6;
+
+  int feel[8][6];
+
+  memset(feel, 0, 8*6*sizeof(int));
+
+  std::random_device rd;
+  std::mt19937 mt(rd());
+  std::uniform_int_distribution<int> dist6(0, 5);
+  std::uniform_int_distribution<int> dist8(0, 7);
+
+  while (alienCount > 0)
   {
-    auto alien = GameFactory.Create(GameObjectsTypes::AlienCraft);
-    alien->SetPosition(QVector2D(800/2 - 800/10*2.5 + 800/10*i, 400));
-    GameManager.AddAlien(std::shared_ptr<AlienCraft>(static_cast<AlienCraft*>(alien)));
-
+    int one = dist8(mt);
+    int two = dist6(mt);
+    if (feel[one][two] != 1)
+    {
+      feel[one][two] = 1;
+      alienCount--;
+    }
   }
-
+  for (int i = 0; i < 8; ++i)
+    for (int k = 0; k < 6; ++k)
+    {
+      if (feel[i][k] == 1)
+      {
+        auto alien = GameFactory.Create(GameObjectsTypes::AlienCraft);
+        alien->SetPosition(QVector2D(100+w*i, h*k + 200 ));
+        GameManager.AddAlien(std::shared_ptr<AlienCraft>(static_cast<AlienCraft*>(alien)));
+      }
+    }
+  for (int i = 0; i < 8; ++i)
+  {
+    auto obstacle = GameFactory.Create(GameObjectsTypes::Obstacles);
+    obstacle->SetPosition(QVector2D(100+(w)*i, 150 ));
+    GameManager.AddObstacle(std::shared_ptr<Obstacles>(static_cast<Obstacles*>(obstacle)));
+  }
 }
 
 GLWidget::~GLWidget()
@@ -84,9 +129,9 @@ void GLWidget::initializeGL()
   m_texturedRect = new TexturedRect();
   m_texturedRect->Initialize(this);
 
-  m_textureAlien = new QOpenGLTexture(QImage("data/alien.png"));
-  m_textureBullet = new QOpenGLTexture(QImage("data/star.png"));
-  m_textureGun = new QOpenGLTexture(QImage("data/star.png"));
+  m_textureAlien = new QOpenGLTexture(QImage(QString::fromUtf8(Settings.Get()["Sys"]["texture"]["alien"].asString().c_str())));
+  m_textureBullet = new QOpenGLTexture(QImage(QString::fromUtf8(Settings.Get()["Sys"]["texture"]["bullet"].asString().c_str())));
+  m_textureGun = new QOpenGLTexture(QImage(QString::fromUtf8(Settings.Get()["Sys"]["texture"]["gun"].asString().c_str())));
 
   m_time.start();
 }
@@ -122,6 +167,34 @@ void GLWidget::paintGL()
     framesPerSecond.setNum(m_frames / (elapsed / 1000.0), 'f', 2);
     painter.setPen(Qt::white);
     painter.drawText(20, 40, framesPerSecond + " fps");
+    painter.drawText(20, 55, QString::number(GameManager.GetBulletList().size()) + " bullets");
+    painter.drawText(20, 70, QString::number(GameManager.GetAlienList().size()) + " aliens");
+    painter.drawText(20, 85, QString::number(GameManager.GetObstaclesList().size()) + " obstacles");
+
+    if (!GameManager.GetGameStatus())
+    {
+      painter.drawText(Player.GetPosition().x(), m_screenSize.height() - Player.GetPosition().y()-32, "The Game End!");
+      int sp = std::accumulate(GameManager.GetAlienList().begin(), GameManager.GetAlienList().end(), 0, [](int s, AlienPtr const & alien) {
+        return s + alien->GetHealf();
+      });
+      sp = 100*Settings.Get()["AlienCount"].asInt() - sp;
+      painter.drawText(m_screenSize.width()/2-50, m_screenSize.height()/2, "you score: " + QString::number(sp));
+    }
+    else
+    {
+      painter.drawText(Player.GetPosition().x(), m_screenSize.height() - Player.GetPosition().y()-32, 
+          QString::number((int)Player.GetHealf()) + " HP");
+    }
+
+    for (auto const & i: GameManager.GetAlienList())
+      painter.drawText(i->GetPosition().x(), m_screenSize.height() - i->GetPosition().y()-32, 
+          QString::number((int)i->GetHealf()) + " HP");
+    for (auto const & i: GameManager.GetObstaclesList())
+      painter.drawText(i->GetPosition().x(), m_screenSize.height() - i->GetPosition().y()-32, 
+          QString::number((int)i->GetHealf()) + " HP");
+
+
+
   }
   painter.end();
 
@@ -140,20 +213,39 @@ void GLWidget::resizeGL(int w, int h)
   m_screenSize.setHeight(h);
 }
 
+void GLWidget::EverySecond()
+{
+  
+}
+
+
 void GLWidget::Update(float elapsedSeconds)
 {
+  m_timeSecond += elapsedSeconds;
+  // 100 = 1 sec
+  if (m_timeSecond > 100.0) EverySecond();
+  if (m_timeSecond > 10.0) GameManager.AlienShot();
+  if (m_timeSecond > 1.0) GameManager.Intersections();
+  while (m_timeSecond > 10.0) m_timeSecond -= 10.0;
+
   float const kSpeed = 20.0f; // pixels per second.
 
   auto position = Player.GetPosition();
 
-  if (m_directions[kUpDirection])
+  /*if (m_directions[kUpDirection])
     position.setY(position.y() + kSpeed * elapsedSeconds);
   if (m_directions[kDownDirection])
-    position.setY(position.y() - kSpeed * elapsedSeconds);
-  if (m_directions[kLeftDirection])
+    position.setY(position.y() - kSpeed * elapsedSeconds);*/
+  if ((m_directions[kLeftDirection]) && (position.x() - Player.GetSize().width()/2 > 0))
     position.setX(position.x() - kSpeed * elapsedSeconds);
-  if (m_directions[kRightDirection])
+  else
+    if (m_directions[kLeftDirection])
+      position.setX(Player.GetSize().width()/2);
+  if ((m_directions[kRightDirection]) && (position.x() + Player.GetSize().width()/2 < m_screenSize.width()))
     position.setX(position.x() + kSpeed * elapsedSeconds);
+  else
+    if (m_directions[kRightDirection])
+    position.setX(m_screenSize.width() - Player.GetSize().width()/2);
 
   for (auto const & i: GameManager.GetBulletList())
   {
@@ -165,20 +257,20 @@ void GLWidget::Update(float elapsedSeconds)
 
 void GLWidget::Render()
 {
-  m_texturedRect->Render(m_textureGun, Player.GetPosition(), QSize(64, 64), m_screenSize);
+  m_texturedRect->Render(m_textureGun, Player.GetPosition(), Player.GetSize(), m_screenSize);
 
   for (auto const & i: GameManager.GetAlienList())
-    m_texturedRect->Render(m_textureAlien, i->GetPosition(), QSize(64, 64), m_screenSize);
+    m_texturedRect->Render(m_textureAlien, i->GetPosition(), i->GetSize(), m_screenSize);
+  for (auto const & i: GameManager.GetObstaclesList())
+    m_texturedRect->Render(m_textureBullet, i->GetPosition(), i->GetSize(), m_screenSize);
+
   for (auto const & i: GameManager.GetBulletList())
   {
     if (i->GetPosition().x() < 0 || i->GetPosition().x() > m_screenSize.width() ||
         i->GetPosition().y() < 0 || i->GetPosition().y() > m_screenSize.height())
       i->SetActive(false);
-    m_texturedRect->Render(m_textureBullet, i->GetPosition(), QSize(64, 64), m_screenSize);
+    m_texturedRect->Render(m_textureBullet, i->GetPosition(), i->GetSize(), m_screenSize);
   }
-
-  GameManager.Intersections();
-
 }
 
 void GLWidget::mousePressEvent(QMouseEvent * e)
@@ -187,13 +279,14 @@ void GLWidget::mousePressEvent(QMouseEvent * e)
 
   int const px = L2D(e->x());
   int const py = L2D(e->y());
-  if (IsLeftButton(e))
+  if (IsLeftButton(e) && GameManager.GetGameStatus())
   {
     // ...
     auto bulletObj = GameFactory.Create(GameObjectsTypes::Bullet);
     bulletObj->SetPosition(Player.GetPosition());
     auto bullet = static_cast<Bullet*>(bulletObj);
     bullet->SetDirection(QVector2D(px, py) - Player.GetPosition());
+    bullet->SetParent(BulletParent::User);
     GameManager.AddBullet(std::shared_ptr<Bullet>(bullet));
 
   }

@@ -23,8 +23,11 @@ add_definitions(${Qt5Widgets_DEFINITIONS})
 aux_source_directory(${SOURCE_ROOT} SRC_LIST)
 qt5_wrap_cpp(QT_WRAPPED_SRC ${SRC_LIST})
 
+
+aux_source_directory(3party/jsoncpp/src/lib_json JSONCPP_SRC)
+
 # Create executable by SRC_LIST.
-add_executable(${PROJECT_NAME} ${SRC_LIST} ${QT_WRAPPED_SRC})
+add_executable(${PROJECT_NAME} ${SRC_LIST} ${QT_WRAPPED_SRC} ${JSONCPP_SRC})
 
 # Qt modules
 qt5_use_modules(${PROJECT_NAME} Widgets OpenGL)
@@ -42,6 +45,9 @@ target_link_libraries(${PROJECT_NAME}  libSystem)
 # Add subdirectory with Google Test Library.
 add_subdirectory(3party/googletest)
 
+add_subdirectory(3party/jsoncpp)
+include_directories(3party/jsoncpp/include)
+
 # Enable unit testing.
 enable_testing()
 # Set up testing project name.
@@ -50,11 +56,13 @@ set(PROJECT_TEST_NAME ${PROJECT_NAME}_test)
 include_directories(3party/googletest/googletest/include ${SOURCE_ROOT})
 # Set up testing project.
 set(TESTS_SOURCE_ROOT tests)
+
+aux_source_directory(3party/jsoncpp/src/lib_json TEST_JSONCPP_SRC)
 aux_source_directory(${TESTS_SOURCE_ROOT} TEST_SRC_FILES)
 set(TEST_SRC_FILES ${SRC_LIST} ${TEST_SRC_FILES})
 list(REMOVE_ITEM TEST_SRC_FILES src/main.cpp)
 qt5_wrap_cpp(QT_WRAPPED_TEST_SRC ${TEST_SRC_FILES})
-add_executable(${PROJECT_TEST_NAME} ${TEST_SRC_FILES} ${QT_WRAPPED_TEST_SRC})
+add_executable(${PROJECT_TEST_NAME} ${TEST_SRC_FILES} ${QT_WRAPPED_TEST_SRC}  ${TEST_JSONCPP_SRC})
 # Link gtest and gtest_main libraries.
 target_link_libraries(${PROJECT_TEST_NAME} gtest gtest_main libGameObjects libSystem)
 qt5_use_modules(${PROJECT_TEST_NAME} Widgets OpenGL)
