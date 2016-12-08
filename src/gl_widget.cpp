@@ -55,9 +55,12 @@ GLWidget::GLWidget(MainWindow * mw, QColor const & background)
 {
   Settings.Load();
 
+  Player.SetHealf(300);
+
   Player.SetPosition(QVector2D(Settings.GetWindowQSize().width()/2, 20));
 
   setMinimumSize( Settings.GetWindowQSize() );
+  setMaximumSize( Settings.GetWindowQSize() );
   setFocusPolicy(Qt::StrongFocus);
 
   GameFactory.Add<Obstacles>(GameObjectsTypes::Obstacles);
@@ -97,12 +100,16 @@ GLWidget::GLWidget(MainWindow * mw, QColor const & background)
       if (feel[i][k] == 1)
       {
         auto alien = GameFactory.Create(GameObjectsTypes::AlienCraft);
-
         alien->SetPosition(QVector2D(100+w*i, h*k + 200 ));
-
         GameManager.AddAlien(std::shared_ptr<AlienCraft>(static_cast<AlienCraft*>(alien)));
       }
     }
+  for (int i = 0; i < 8; ++i)
+  {
+    auto obstacle = GameFactory.Create(GameObjectsTypes::Obstacles);
+    obstacle->SetPosition(QVector2D(100+(w)*i, 150 ));
+    GameManager.AddObstacle(std::shared_ptr<Obstacles>(static_cast<Obstacles*>(obstacle)));
+  }
 }
 
 GLWidget::~GLWidget()
@@ -156,10 +163,38 @@ void GLWidget::paintGL()
 
   if (elapsed != 0)
   {
-    /*QString framesPerSecond;
+    QString framesPerSecond;
     framesPerSecond.setNum(m_frames / (elapsed / 1000.0), 'f', 2);
     painter.setPen(Qt::white);
-    painter.drawText(20, 40, framesPerSecond + " fps");*/
+    painter.drawText(20, 40, framesPerSecond + " fps");
+    painter.drawText(20, 55, QString::number(GameManager.GetBulletList().size()) + " bullets");
+    painter.drawText(20, 70, QString::number(GameManager.GetAlienList().size()) + " aliens");
+    painter.drawText(20, 85, QString::number(GameManager.GetObstaclesList().size()) + " obstacles");
+
+    if (!GameManager.GetGameStatus())
+    {
+      painter.drawText(Player.GetPosition().x(), m_screenSize.height() - Player.GetPosition().y()-32, "The Game End!");
+      int sp = std::accumulate(GameManager.GetAlienList().begin(), GameManager.GetAlienList().end(), 0, [](int s, AlienPtr const & alien) {
+        return s + alien->GetHealf();
+      });
+      sp = 100*Settings.Get()["AlienCount"].asInt() - sp;
+      painter.drawText(m_screenSize.width()/2-50, m_screenSize.height()/2, "you score: " + QString::number(sp));
+    }
+    else
+    {
+      painter.drawText(Player.GetPosition().x(), m_screenSize.height() - Player.GetPosition().y()-32, 
+          QString::number((int)Player.GetHealf()) + " HP");
+    }
+
+    for (auto const & i: GameManager.GetAlienList())
+      painter.drawText(i->GetPosition().x(), m_screenSize.height() - i->GetPosition().y()-32, 
+          QString::number((int)i->GetHealf()) + " HP");
+    for (auto const & i: GameManager.GetObstaclesList())
+      painter.drawText(i->GetPosition().x(), m_screenSize.height() - i->GetPosition().y()-32, 
+          QString::number((int)i->GetHealf()) + " HP");
+
+
+
   }
   painter.end();
 
@@ -180,7 +215,7 @@ void GLWidget::resizeGL(int w, int h)
 
 void GLWidget::EverySecond()
 {
-  GameManager.AlienShot();
+  
 }
 
 
@@ -188,7 +223,9 @@ void GLWidget::Update(float elapsedSeconds)
 {
   m_timeSecond += elapsedSeconds;
   // 100 = 1 sec
-  if (m_timeSecond > 10.0) EverySecond();
+  if (m_timeSecond > 100.0) EverySecond();
+  if (m_timeSecond > 10.0) GameManager.AlienShot();
+  if (m_timeSecond > 1.0) GameManager.Intersections();
   while (m_timeSecond > 10.0) m_timeSecond -= 10.0;
 
   float const kSpeed = 20.0f; // pixels per second.
@@ -224,6 +261,9 @@ void GLWidget::Render()
 
   for (auto const & i: GameManager.GetAlienList())
     m_texturedRect->Render(m_textureAlien, i->GetPosition(), i->GetSize(), m_screenSize);
+  for (auto const & i: GameManager.GetObstaclesList())
+    m_texturedRect->Render(m_textureBullet, i->GetPosition(), i->GetSize(), m_screenSize);
+
   for (auto const & i: GameManager.GetBulletList())
   {
     if (i->GetPosition().x() < 0 || i->GetPosition().x() > m_screenSize.width() ||
@@ -231,9 +271,6 @@ void GLWidget::Render()
       i->SetActive(false);
     m_texturedRect->Render(m_textureBullet, i->GetPosition(), i->GetSize(), m_screenSize);
   }
-
-  GameManager.Intersections();
-
 }
 
 void GLWidget::mousePressEvent(QMouseEvent * e)
@@ -242,7 +279,7 @@ void GLWidget::mousePressEvent(QMouseEvent * e)
 
   int const px = L2D(e->x());
   int const py = L2D(e->y());
-  if (IsLeftButton(e))
+  if (IsLeftButton(e) && GameManager.GetGameStatus())
   {
     // ...
     auto bulletObj = GameFactory.Create(GameObjectsTypes::Bullet);

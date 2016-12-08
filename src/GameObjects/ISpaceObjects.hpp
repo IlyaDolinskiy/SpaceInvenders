@@ -36,6 +36,7 @@ public:
   }
 
   float GetHealf() const { return m_healf; }
+  void SetHealf(float healf) { m_healf = healf; }
 
   virtual void Move(float elapsedSeconds) {}
 
