@@ -3,6 +3,7 @@
 #include <QSize>
 #include <QVector2D>
 
+#include <iostream>
 #include "IGameObjects.hpp"
 
 class ISpaceObjects : public IGameObjects
@@ -26,8 +27,13 @@ public:
     QVector2D m_max2 = createMax(object.m_position, object.m_size);
     QVector2D m_min2 = createMin(object.m_position, object.m_size);
 
-    return (m_max1.y() >= m_min2.y()) && (m_min1.y() <= m_max2.y()) &&
-      (m_max1.x() >= m_min2.x()) && (m_min1.x() <= m_max2.x());
+    /*return (m_max1.y() >= m_min2.y()) && (m_min1.y() <= m_max2.y()) &&
+      (m_max1.x() >= m_min2.x()) && (m_min1.x() <= m_max2.x());*/
+    
+    return  (m_max1.y() >= m_min2.y()) && (m_min1.y() <= m_max2.y()) &&
+            (m_max1.x() >= m_min2.x()) && (m_min1.x() <= m_max2.x());
+
+    //return !(m_max1.y() <= m_min2.y() || m_min1.y() >= m_max2.y() || m_max1.x() <= m_min2.x() || m_min1.x() >= m_max2.x());
   }
 
   virtual void Damage(double harm) 
