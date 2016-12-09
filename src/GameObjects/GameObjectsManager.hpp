@@ -10,6 +10,7 @@
 #include <random>
 #include <algorithm>
 #include <chrono> 
+#include "Settings.hpp"
 
 typedef std::shared_ptr<Bullet> BulletPtr;
 typedef std::shared_ptr<AlienCraft> AlienPtr;
@@ -137,6 +138,70 @@ public:
   void SetGameStatus(bool s) { m_isPlaying = s; }
   bool const GetGameStatus() const { return m_isPlaying; }
 
+  void Restart()
+  {
+    m_aliens.clear();
+
+    Player.SetHealf(300);
+    Player.SetPosition(QVector2D(Settings.GetWindowQSize().width()/2, 20));
+
+    int alienCount = Settings.Get()["AlienCount"].asInt();
+    int w = Settings.GetWindowQSize().width() - 200;
+    int h = Settings.GetWindowQSize().height() - 200;
+    
+    w /= 8;
+    h /= 6;
+
+    int feel[8][6];
+
+    memset(feel, 0, 8*6*sizeof(int));
+
+    std::random_device rd;
+    std::mt19937 mt(rd());
+    std::uniform_int_distribution<int> dist6(0, 5);
+    std::uniform_int_distribution<int> dist8(0, 7);
+
+    while (alienCount > 0)
+    {
+      int one = dist8(mt);
+      int two = dist6(mt);
+      if (feel[one][two] != 1)
+      {
+        feel[one][two] = 1;
+        alienCount--;
+      }
+    }
+    for (int i = 0; i < 8; ++i)
+      for (int k = 0; k < 6; ++k)
+      {
+        if (feel[i][k] == 1)
+        {
+          auto alien = GameFactory.Create(GameObjectsTypes::AlienCraft);
+          alien->SetPosition(QVector2D(100+w*i, h*k + 200 ));
+          AddAlien(std::shared_ptr<AlienCraft>(static_cast<AlienCraft*>(alien)));
+        }
+      }
+    /*for (int i = 0; i < 8; ++i)
+    {
+      auto obstacle = GameFactory.Create(GameObjectsTypes::Obstacles);
+      obstacle->SetPosition(QVector2D(100+(w)*i, 150 ));
+      GameManager.AddObstacle(std::shared_ptr<Obstacles>(static_cast<Obstacles*>(obstacle)));
+    }*/
+    m_timing = 3;
+    m_isPlaying = true;
+  }
+
+  int GetTiming() {return m_timing;}
+  void SetTiming(int t) {m_timing = t;}
+  int PopTiming() 
+  { 
+    if (m_timing == 0)
+      m_isPlaying = true;
+    else
+      m_timing--;
+    return m_timing;
+  }
+
 protected:
   friend class patterns::Singleton<GameObjectsManager>;
 
@@ -144,6 +209,7 @@ protected:
   std::list<AlienPtr> m_aliens;
   std::list<ObstaclesPtr> m_obstacles;
 
+  int m_timing = 3;
   bool m_isPlaying = true;
 };
 
