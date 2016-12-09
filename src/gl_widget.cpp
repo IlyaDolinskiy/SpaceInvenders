@@ -73,6 +73,7 @@ GLWidget::~GLWidget()
   delete m_textureAlien;
   delete m_textureBullet;
   delete m_textureGun;
+  m_textureObstacle;
   delete m_texturedRect;
   doneCurrent();
 }
@@ -87,6 +88,8 @@ void GLWidget::initializeGL()
   m_textureAlien = new QOpenGLTexture(QImage(QString::fromUtf8(Settings.Get()["Sys"]["texture"]["alien"].asString().c_str())));
   m_textureBullet = new QOpenGLTexture(QImage(QString::fromUtf8(Settings.Get()["Sys"]["texture"]["bullet"].asString().c_str())));
   m_textureGun = new QOpenGLTexture(QImage(QString::fromUtf8(Settings.Get()["Sys"]["texture"]["gun"].asString().c_str())));
+  m_textureObstacle = new QOpenGLTexture(QImage(QString::fromUtf8(Settings.Get()["Sys"]["texture"]["obstacle"].asString().c_str())));
+ 
 
   m_time.start();
 }
@@ -222,7 +225,7 @@ void GLWidget::Render()
   for (auto const & i: GameManager.GetAlienList())
     m_texturedRect->Render(m_textureAlien, i->GetPosition(), i->GetSize(), m_screenSize);
   for (auto const & i: GameManager.GetObstaclesList())
-    m_texturedRect->Render(m_textureBullet, i->GetPosition(), i->GetSize(), m_screenSize);
+    m_texturedRect->Render(m_textureObstacle, i->GetPosition(), i->GetSize(), m_screenSize);
 
   for (auto const & i: GameManager.GetBulletList())
   {
@@ -238,17 +241,15 @@ void GLWidget::mousePressEvent(QMouseEvent * e)
   QOpenGLWidget::mousePressEvent(e);
 
   int const px = L2D(e->x());
-  int const py = L2D(e->y());
+  int const py = m_screenSize.height()-L2D(e->y());
   if (IsLeftButton(e) && GameManager.GetGameStatus())
   {
-    // ...
     auto bulletObj = GameFactory.Create(GameObjectsTypes::Bullet);
     bulletObj->SetPosition(Player.GetPosition());
     auto bullet = static_cast<Bullet*>(bulletObj);
     bullet->SetDirection(QVector2D(px, py) - Player.GetPosition());
     bullet->SetParent(BulletParent::User);
     GameManager.AddBullet(std::shared_ptr<Bullet>(bullet));
-
   }
 }
 

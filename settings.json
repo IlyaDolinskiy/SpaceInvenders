@@ -4,7 +4,8 @@
          "texture" : {
             "alien" : "data/alien.png",
             "gun" : "data/gun.png",
-            "bullet" : "data/star.png"
+            "bullet" : "data/star.png",
+            "obstacle" : "data/obstacle.png"
          }
       },
       "UserName" : "",

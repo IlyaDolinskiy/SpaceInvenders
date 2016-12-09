@@ -12,6 +12,8 @@
 #include <chrono> 
 #include "Settings.hpp"
 
+#include "../Tools/Logger/Logger.hpp"
+
 typedef std::shared_ptr<Bullet> BulletPtr;
 typedef std::shared_ptr<AlienCraft> AlienPtr;
 typedef std::shared_ptr<Obstacles> ObstaclesPtr;
@@ -48,7 +50,6 @@ public:
     {
       auto it = m_aliens.begin();
       std::advance(it, Math::GetRandomInt(0, m_aliens.size()-1));
-
 
       QVector2D pos =  it->get()->GetPosition();
 
@@ -87,50 +88,56 @@ public:
 
     for (auto const & bullet: m_bullets)
     {
-      if (bullet->IsActive() || m_isPlaying)
+      if (m_isPlaying)
       {
         if (bullet->GetParent() == BulletParent::User)
           for (auto const & alien : m_aliens)
           {
-            if (bullet->Intersection(*(alien.get())))
+            if (bullet->IsActive())
             {
-              // *10 temp
-              alien->Damage(bullet->GetEnergy());
-              bullet->SetActive(false);
-              if (alien->GetHealf() <= 0)
-                alien->SetActive(false);
-              continue;
-            }
+              if (bullet->Intersection(*(alien.get())))
+              {
+                alien->Damage(bullet->GetEnergy());
+                bullet->SetActive(false);
+                if (alien->GetHealf() <= 0)
+                  alien->SetActive(false);
+              } 
+            } else break;
           }
         else
         {
-          // player check
-          if (bullet->Intersection(Player))
+          if (bullet->IsActive())
           {
-            Player.Damage(bullet->GetEnergy());
-            bullet->SetActive(false);
-            std::cout << "Player Damage " << std::endl;
-            if (Player.GetHealf() <= 0)
+            if (bullet->Intersection(Player))
             {
-              m_isPlaying = false;
-              std::cout << "Game End!" << std::endl;
-            }
-            continue;
-          }
+              Player.Damage(bullet->GetEnergy());
+              bullet->SetActive(false);
+              if (m_isPlaying && (Player.GetHealf() <= 0))
+              {
+                m_isPlaying = false;
+                Log(Logger::Info) << std::string("Game End!");
+              }
+            } 
+          } else break;
         }
-        for (auto const & obstacles: m_obstacles)
-        {
-          if (bullet->Intersection(*(obstacles.get())));
+          for (auto const & obstacles: m_obstacles)
           {
-            obstacles->Damage(bullet->GetEnergy()/10.0);
-            //bullet->SetActive(false);
-
-            if (obstacles->GetHealf() <= 0)
-              obstacles->SetActive(false);
-
-            continue;
+            if (bullet->IsActive())
+            {
+              switch (bullet->Intersection(*(obstacles.get())))
+              case true:
+                {
+                  obstacles->Damage(bullet->GetEnergy()/10.0);
+                  if (obstacles->GetHealf() <= 0)
+                  {
+                    obstacles->SetActive(false);
+                  }
+                  bullet->SetActive(false);
+                } 
+            } else 
+                break;
           }
-        }
+        
       }
     }
   }
@@ -140,26 +147,32 @@ public:
 
   void Restart()
   {
+
+    Log(Logger::Info) << std::string("New Game Start!");
     m_aliens.clear();
 
     Player.SetHealf(300);
     Player.SetPosition(QVector2D(Settings.GetWindowQSize().width()/2, 20));
+    Player.SetSize(QSize(50,30));
 
     int alienCount = Settings.Get()["AlienCount"].asInt();
     int w = Settings.GetWindowQSize().width() - 200;
     int h = Settings.GetWindowQSize().height() - 200;
     
-    w /= 8;
-    h /= 6;
+    int const inLine = 8;
+    int const inRow = 6;
 
-    int feel[8][6];
+    w /= inLine;
+    h /= inRow;
 
-    memset(feel, 0, 8*6*sizeof(int));
+    int feel[inLine][inRow];
+
+    memset(feel, 0, inLine*inRow*sizeof(int));
 
     std::random_device rd;
     std::mt19937 mt(rd());
-    std::uniform_int_distribution<int> dist6(0, 5);
-    std::uniform_int_distribution<int> dist8(0, 7);
+    std::uniform_int_distribution<int> dist6(0, inRow-1);
+    std::uniform_int_distribution<int> dist8(0, inLine-1);
 
     while (alienCount > 0)
     {
@@ -171,22 +184,25 @@ public:
         alienCount--;
       }
     }
-    for (int i = 0; i < 8; ++i)
-      for (int k = 0; k < 6; ++k)
+    for (int i = 0; i < inLine; ++i)
+      for (int k = 0; k < inRow; ++k)
       {
         if (feel[i][k] == 1)
         {
           auto alien = GameFactory.Create(GameObjectsTypes::AlienCraft);
           alien->SetPosition(QVector2D(100+w*i, h*k + 200 ));
+          alien->SetSize(QSize(104/3, 77/3 ));
           AddAlien(std::shared_ptr<AlienCraft>(static_cast<AlienCraft*>(alien)));
         }
       }
-    /*for (int i = 0; i < 8; ++i)
+    for (int i = 0; i < inLine; ++i)
     {
       auto obstacle = GameFactory.Create(GameObjectsTypes::Obstacles);
-      obstacle->SetPosition(QVector2D(100+(w)*i, 150 ));
-      GameManager.AddObstacle(std::shared_ptr<Obstacles>(static_cast<Obstacles*>(obstacle)));
-    }*/
+      obstacle->SetPosition(QVector2D(100+(w)*i, 120 ));
+
+      obstacle->SetSize(QSize(30, 20 ));
+      AddObstacle(std::shared_ptr<Obstacles>(static_cast<Obstacles*>(obstacle)));
+    }
     m_timing = 3;
     m_isPlaying = true;
   }
@@ -214,3 +230,7 @@ protected:
 };
 
 #define GameManager patterns::Singleton<GameObjectsManager>::Instance()
+
+
+
+#define Log patterns::Singleton<Logger>::Instance()
