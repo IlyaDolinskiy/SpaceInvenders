@@ -55,10 +55,6 @@ GLWidget::GLWidget(MainWindow * mw, QColor const & background)
 {
   Settings.Load();
 
-  Player.SetHealf(300);
-
-  Player.SetPosition(QVector2D(Settings.GetWindowQSize().width()/2, 20));
-
   setMinimumSize( Settings.GetWindowQSize() );
   setMaximumSize( Settings.GetWindowQSize() );
   setFocusPolicy(Qt::StrongFocus);
@@ -68,48 +64,7 @@ GLWidget::GLWidget(MainWindow * mw, QColor const & background)
   GameFactory.Add<AlienCraft>(GameObjectsTypes::AlienCraft);
 
 //
-  int alienCount = Settings.Get()["AlienCount"].asInt();
-  int w = Settings.GetWindowQSize().width() - 200;
-  int h = Settings.GetWindowQSize().height() - 200;
-  
-  w /= 8;
-  h /= 6;
-
-  int feel[8][6];
-
-  memset(feel, 0, 8*6*sizeof(int));
-
-  std::random_device rd;
-  std::mt19937 mt(rd());
-  std::uniform_int_distribution<int> dist6(0, 5);
-  std::uniform_int_distribution<int> dist8(0, 7);
-
-  while (alienCount > 0)
-  {
-    int one = dist8(mt);
-    int two = dist6(mt);
-    if (feel[one][two] != 1)
-    {
-      feel[one][two] = 1;
-      alienCount--;
-    }
-  }
-  for (int i = 0; i < 8; ++i)
-    for (int k = 0; k < 6; ++k)
-    {
-      if (feel[i][k] == 1)
-      {
-        auto alien = GameFactory.Create(GameObjectsTypes::AlienCraft);
-        alien->SetPosition(QVector2D(100+w*i, h*k + 200 ));
-        GameManager.AddAlien(std::shared_ptr<AlienCraft>(static_cast<AlienCraft*>(alien)));
-      }
-    }
-  for (int i = 0; i < 8; ++i)
-  {
-    auto obstacle = GameFactory.Create(GameObjectsTypes::Obstacles);
-    obstacle->SetPosition(QVector2D(100+(w)*i, 150 ));
-    GameManager.AddObstacle(std::shared_ptr<Obstacles>(static_cast<Obstacles*>(obstacle)));
-  }
+  GameManager.Restart();
 }
 
 GLWidget::~GLWidget()
@@ -169,16 +124,21 @@ void GLWidget::paintGL()
     painter.drawText(20, 40, framesPerSecond + " fps");
     painter.drawText(20, 55, QString::number(GameManager.GetBulletList().size()) + " bullets");
     painter.drawText(20, 70, QString::number(GameManager.GetAlienList().size()) + " aliens");
-    painter.drawText(20, 85, QString::number(GameManager.GetObstaclesList().size()) + " obstacles");
+    //painter.drawText(20, 85, QString::number(GameManager.GetObstaclesList().size()) + " obstacles");
 
     if (!GameManager.GetGameStatus())
     {
-      painter.drawText(Player.GetPosition().x(), m_screenSize.height() - Player.GetPosition().y()-32, "The Game End!");
-      int sp = std::accumulate(GameManager.GetAlienList().begin(), GameManager.GetAlienList().end(), 0, [](int s, AlienPtr const & alien) {
-        return s + alien->GetHealf();
-      });
-      sp = 100*Settings.Get()["AlienCount"].asInt() - sp;
-      painter.drawText(m_screenSize.width()/2-50, m_screenSize.height()/2, "you score: " + QString::number(sp));
+      {
+        painter.drawText(Player.GetPosition().x(), m_screenSize.height() - Player.GetPosition().y()-32, "The Game End!");
+        
+        int sp = std::accumulate(GameManager.GetAlienList().begin(), GameManager.GetAlienList().end(), 0, [](int s, AlienPtr const & alien) {
+          return s + alien->GetHealf();
+        });
+        sp = 100*Settings.Get()["AlienCount"].asInt() - sp;
+        painter.drawText(m_screenSize.width()/2-50, m_screenSize.height()/2, "you score: " + QString::number(sp));
+        painter.drawText(m_screenSize.width()/2-50,  m_screenSize.height()/2+15, "Press f1 to restart");
+        painter.drawText(m_screenSize.width()/2-50, m_screenSize.height()/2+30, "you HP: " + QString::number((int)Player.GetHealf()));
+      }
     }
     else
     {
@@ -215,7 +175,7 @@ void GLWidget::resizeGL(int w, int h)
 
 void GLWidget::EverySecond()
 {
-  
+
 }
 
 
@@ -360,4 +320,6 @@ void GLWidget::keyReleaseEvent(QKeyEvent * e)
     m_directions[kLeftDirection] = false;
   else if (e->key() == Qt::Key_Right)
     m_directions[kRightDirection] = false;
+  else if (e->key() == Qt::Key_F1)
+    GameManager.Restart();
 }
